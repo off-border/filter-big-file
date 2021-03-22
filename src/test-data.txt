@@ -8,5 +8,5 @@ line 6
 
 line 7 search B
 
-line 8 
+line 8
 line 9 search C

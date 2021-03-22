@@ -13,7 +13,9 @@ module.exports = function ({ inputFile, outputFile, blockSeparator, searchString
     const inputMonitorStream = new CounterStream();
     const outputMonitorStream = new CounterStream();
 
-    inputStream.pipe(splitterStream).pipe(inputMonitorStream)
+    inputStream
+    .pipe(splitterStream)
+    .pipe(inputMonitorStream)
     .pipe(filterStream)
     .pipe(joiningStream)
     .pipe(outputMonitorStream)
@@ -21,12 +23,20 @@ module.exports = function ({ inputFile, outputFile, blockSeparator, searchString
 
     const startTime = Date.now();
     outputStream.on("close", () => {
-        console.log("-----input counter", inputMonitorStream.counter);
-        console.log("-----output counter", outputMonitorStream.counter);
-        console.log("-----total time", Date.now() - startTime);
-
+        const msg = [
+            `input blocks: ${inputMonitorStream.counter}`,
+            `output blocks: ${outputMonitorStream.counter}`,
+            `parsing time: ${Date.now() - startTime}`,
+        ]
+        console.log(msg.join('\n'));
         resolve();
     });
+
+    inputStream.on('error', e => {throw e;});
+    splitterStream.on('error', e => {throw e;});
+    filterStream.on('error', e => {throw e;});
+    joiningStream.on('error', e => {throw e;});
+    outputStream.on('error', e => {throw e;});
 
     return promise;
 };
@@ -54,6 +64,11 @@ class SplitterStream extends stream.Transform {
         this.buffer = lines.pop();
         lines.forEach(line => this.push(line));
         cb();
+    }
+
+    _flush() {
+        this.push(this.buffer);
+        this.push(null);
     }
 }
 
@@ -83,11 +98,22 @@ class FilterStream extends stream.Transform {
 class JoiningStream extends stream.Transform {
     constructor({ separator }) {
         super();
+        // this.buffer = '';
+        this.firstChunk = true;
         this.separator = separator;
     }
 
     _transform(chunk, encoding, cb) {
-        this.push(chunk.toString() + this.separator);
+        // this.buffer && this.push(this.buffer);
+        // this.buffer = chunk.toString();
+        !this.firstChunk && chunk.toString() && this.push(this.separator);
+        this.firstChunk = false;
+        this.push(chunk);
         cb();
     }
+
+    // _flush() {
+    //     this.push(this.buffer);
+    //     this.push(null);
+    // }
 }
