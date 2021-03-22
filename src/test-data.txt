@@ -1,0 +1,14 @@
+line 1
+line 2 search A
+line 3
+
+line 4
+line 5 search A search B
+line 6
+
+
+line 7 search B
+
+
+line 8 
+line 9 search C
