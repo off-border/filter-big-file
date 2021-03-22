@@ -11,24 +11,59 @@ describe("filter-big-file", () => {
         } catch (e) {}
     });
 
-    it("creates output file", async () => {
+    // it("creates output file", async () => {
+    //     await filterBigFile({
+    //         inputFile: INPUT_FILE,
+    //         outputFile: OUTPUT_FILE,
+    //         blockSeparator: "\n\r",
+    //         searchString: 'search A'
+    //     });
+
+    //     expect(fs.existsSync(OUTPUT_FILE)).toBe(true);
+    // });
+
+    // it ('writes matching blocks to result file', async () => {
+    //     await filterBigFile({
+    //         inputFile: INPUT_FILE,
+    //         outputFile: OUTPUT_FILE,
+    //         blockSeparator: "\n\r",
+    //         searchString: 'search A'
+    //     });
+
+    //     const output = fs.readFileSync(OUTPUT_FILE, 'utf-8');
+
+    //     const expected = `line 1
+    //         line 2 search A
+    //         line 3
+
+    //         line 4
+    //         line 5 search A search B
+    //         line 6
+
+    //         `;
+    //     expect(output.split(/\s+/)).toEqual(expected.split(/\s+/))
+    // });
+
+    it ('contains endind newline', async () => {
         await filterBigFile({
             inputFile: INPUT_FILE,
             outputFile: OUTPUT_FILE,
             blockSeparator: "\n\r",
-            searchString: 'search A'
+            searchString: 'line 9'
         });
 
-        expect(fs.existsSync(OUTPUT_FILE)).toBe(true);
-    });
+        const output = fs.readFileSync(OUTPUT_FILE, 'utf-8');
 
-    it ('writes matching blocks to result file', async () => {
-        await filterBigFile({
-            inputFile: INPUT_FILE,
-            outputFile: OUTPUT_FILE,
-            blockSeparator: "\n\r",
-            searchString: 'search A'
-        });
+        const expected = `line 1
+            line 2 search A
+            line 3
+
+            line 4
+            line 5 search A search B
+            line 6
+
+            `;
+        expect(output.split(/\s+/)).toEqual(expected.split(/\s+/))
     });
 
 });
