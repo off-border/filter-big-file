@@ -2,6 +2,11 @@
   "name": "filter-big-file",
   "version": "1.0.0",
   "description": "Filter big file into new one by provided substring and paragraph (block) divider",
+  "homepage": "https://github.com/off-border/filter-big-file",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/off-border/filter-big-file.git"
+  },
   "main": "filter-big-file.js",
   "bin": "./bin/index.js",
   "scripts": {
