@@ -4,33 +4,43 @@ const path = require("path");
 const { start } = require("repl");
 const stream = require("stream");
 
-module.exports = async function () {
+module.exports.CLI = async function () {
     const options = getOptions();
     console.log("-----options", options);
-
     await module.exports.filterBigFile(options);
 };
 
 function getOptions() {
+    const requiredOptions = ["inputFile", "outputFile", "searchString"];
     const args = process.argv.slice(2);
-    return args.map(a => a.replace("--", "").split("=")).reduce((res, [key, val]) => ({ ...res, [key]: val }), {});
+    const options = args
+        .map(a => a.replace("--", "").split("="))
+        .reduce((res, [key, val]) => ({ ...res, [key]: val }), {});
+
+    for (const requiredOpt of requiredOptions) {
+        if (!options[requiredOpt]) {
+            required(requiredOpt);
+        }
+    }
+
+    return options;
 }
 
 module.exports.filterBigFile = function ({
     inputFile = required("inputFile"),
-    outputFile = required("outputFile"),
-    blockSeparator = "\n",
+    outputFile = required("inputFile"),
     searchString = required("searchString"),
+    blockSeparator = "\n",
 }) {
-    if (!inputFile.startsWith('/')) {
+    if (!inputFile.startsWith("/")) {
         inputFile = path.join(process.cwd(), inputFile);
     }
     if (!fs.existsSync(inputFile)) {
         console.error(`file "${inputFile} not found`);
         return;
     }
-    
-    if (!outputFile.startsWith('/')) {
+
+    if (!outputFile.startsWith("/")) {
         outputFile = path.join(process.cwd(), outputFile);
     }
 
@@ -155,5 +165,4 @@ class JoiningStream extends stream.Transform {
     }
 }
 
-if (require.main === module)
-    module.exports();
+if (require.main === module) module.exports.CLI();

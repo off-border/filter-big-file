@@ -1,7 +1,7 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
-const CLI = require("./filter-big-file.js");
-const { filterBigFile } = CLI;
+const fbfModule = require("./filter-big-file.js");
+const { filterBigFile, CLI } = fbfModule;
 
 const INPUT_FILE = __dirname + "/test-data.txt";
 const OUTPUT_FILE = __dirname + "/test-data-out.txt";
@@ -61,18 +61,18 @@ describe("filterBigFile", () => {
 
 describe("CLI", () => {
     it("runs filterBigFile", async () => {
-        jest.spyOn(CLI, "filterBigFile");
+        jest.spyOn(fbfModule, "filterBigFile");
         process.argv = ["", "", "--inputFile=src/test-data.txt", "--outputFile=./test-data-out.txt", "searchString=aaa"];
 
         await CLI();
 
-        expect(CLI.filterBigFile).toBeCalledWith({
+        expect(fbfModule.filterBigFile).toBeCalledWith({
             inputFile: "src/test-data.txt",
             outputFile: "./test-data-out.txt",
             searchString: "aaa",
         });
 
-        CLI.filterBigFile.mockRestore();
+        fbfModule.filterBigFile.mockRestore();
     });
 
     it("accepts arguments from command line", async () => {
