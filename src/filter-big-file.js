@@ -67,7 +67,7 @@ module.exports.filterBigFile = function ({
         const msg = [
             `input blocks: ${inputMonitorStream.counter}`,
             `output blocks: ${outputMonitorStream.counter}`,
-            `parsing time: ${Date.now() - startTime}`,
+            `parsing time: ${Date.now() - startTime} ms`,
         ];
         console.log(msg.join("\n"));
         resolve();

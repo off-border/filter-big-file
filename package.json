@@ -1,8 +1,9 @@
 {
   "name": "filter-big-file",
   "version": "1.0.0",
-  "description": "Filter big file into new one by provided substring and paragraph divider",
+  "description": "Filter big file into new one by provided substring and paragraph (block) divider",
   "main": "filter-big-file.js",
+  "bin": "./bin/index.js",
   "scripts": {
     "test": "npx jest"
   },
