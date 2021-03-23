@@ -1,10 +1,12 @@
+const { execSync } = require("child_process");
 const fs = require("fs");
-const filterBigFile = require("./filter-big-file.js");
+const CLI = require("./filter-big-file.js");
+const { filterBigFile } = CLI;
 
 const INPUT_FILE = __dirname + "/test-data.txt";
 const OUTPUT_FILE = __dirname + "/test-data-out.txt";
 
-describe("filter-big-file", () => {
+describe("filterBigFile", () => {
     beforeEach(() => {
         try {
             fs.unlinkSync(OUTPUT_FILE);
@@ -41,7 +43,7 @@ describe("filter-big-file", () => {
         expect(prettify(output)).toEqual(prettify(expected));
     });
 
-    it("contains no endind newline", async () => {
+    it("contains no ending newline", async () => {
         await filterBigFile({
             inputFile: INPUT_FILE,
             outputFile: OUTPUT_FILE,
@@ -54,6 +56,38 @@ describe("filter-big-file", () => {
         const expected = `line 8
         line 9 search C`;
         expect(prettify(output)).toEqual(prettify(expected));
+    });
+});
+
+describe("CLI", () => {
+    it("runs filterBigFile", async () => {
+        jest.spyOn(CLI, "filterBigFile");
+        process.argv = ["", "", "--inputFile=src/test-data.txt", "--outputFile=./test-data-out.txt", "searchString=aaa"];
+
+        await CLI();
+
+        expect(CLI.filterBigFile).toBeCalledWith({
+            inputFile: "src/test-data.txt",
+            outputFile: "./test-data-out.txt",
+            searchString: "aaa",
+        });
+
+        CLI.filterBigFile.mockRestore();
+    });
+
+    it("accepts arguments from command line", async () => {
+        const stdout = execSync([
+            'node src/filter-big-file.js', 
+            '--inputFile=src/test-data.txt', 
+            '--outputFile=src/test-data-out-cli.txt',
+            '--searchString="line 4"'].join(' ')
+        );
+
+        const output = fs.readFileSync('src/test-data-out-cli.txt');
+
+        const expected = `line 4`;
+
+        expect(prettify(output.toString())).toEqual(prettify(expected));
     });
 });
 

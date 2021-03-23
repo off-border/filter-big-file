@@ -1,11 +1,42 @@
 const fs = require("fs");
+const path = require("path");
+
 const { start } = require("repl");
 const stream = require("stream");
 
-module.exports = function ({ inputFile, outputFile, blockSeparator, searchString }) {
+module.exports = async function () {
+    const options = getOptions();
+    console.log("-----options", options);
+
+    await module.exports.filterBigFile(options);
+};
+
+function getOptions() {
+    const args = process.argv.slice(2);
+    return args.map(a => a.replace("--", "").split("=")).reduce((res, [key, val]) => ({ ...res, [key]: val }), {});
+}
+
+module.exports.filterBigFile = function ({
+    inputFile = required("inputFile"),
+    outputFile = required("outputFile"),
+    blockSeparator = "\n",
+    searchString = required("searchString"),
+}) {
+    if (!inputFile.startsWith('/')) {
+        inputFile = path.join(process.cwd(), inputFile);
+    }
+    if (!fs.existsSync(inputFile)) {
+        console.error(`file "${inputFile} not found`);
+        return;
+    }
+    
+    if (!outputFile.startsWith('/')) {
+        outputFile = path.join(process.cwd(), outputFile);
+    }
+
     const { promise, resolve, reject } = getPromise();
     const inputStream = fs.createReadStream(inputFile);
-    const filterStream = new FilterStream({filter: searchString});
+    const filterStream = new FilterStream({ filter: searchString });
     const splitterStream = new SplitterStream({ separator: blockSeparator });
     const joiningStream = new JoiningStream({ separator: blockSeparator });
     let outputStream = fs.createWriteStream(outputFile);
@@ -14,12 +45,12 @@ module.exports = function ({ inputFile, outputFile, blockSeparator, searchString
     const outputMonitorStream = new CounterStream();
 
     inputStream
-    .pipe(splitterStream)
-    .pipe(inputMonitorStream)
-    .pipe(filterStream)
-    .pipe(joiningStream)
-    .pipe(outputMonitorStream)
-    .pipe(outputStream);
+        .pipe(splitterStream)
+        .pipe(inputMonitorStream)
+        .pipe(filterStream)
+        .pipe(joiningStream)
+        .pipe(outputMonitorStream)
+        .pipe(outputStream);
 
     const startTime = Date.now();
     outputStream.on("close", () => {
@@ -27,19 +58,34 @@ module.exports = function ({ inputFile, outputFile, blockSeparator, searchString
             `input blocks: ${inputMonitorStream.counter}`,
             `output blocks: ${outputMonitorStream.counter}`,
             `parsing time: ${Date.now() - startTime}`,
-        ]
-        console.log(msg.join('\n'));
+        ];
+        console.log(msg.join("\n"));
         resolve();
     });
 
-    inputStream.on('error', e => {throw e;});
-    splitterStream.on('error', e => {throw e;});
-    filterStream.on('error', e => {throw e;});
-    joiningStream.on('error', e => {throw e;});
-    outputStream.on('error', e => {throw e;});
+    inputStream.on("error", e => {
+        throw e;
+    });
+    splitterStream.on("error", e => {
+        throw e;
+    });
+    filterStream.on("error", e => {
+        throw e;
+    });
+    joiningStream.on("error", e => {
+        throw e;
+    });
+    outputStream.on("error", e => {
+        throw e;
+    });
 
     return promise;
 };
+
+function required(paramName = "") {
+    console.error(`parameter "${paramName}" is required\n`);
+    throw new Error(`parameter "${paramName}" is required`);
+}
 
 function getPromise() {
     let promise, resolve, reject;
@@ -89,8 +135,7 @@ class FilterStream extends stream.Transform {
     }
 
     _transform(chunk, encoding, cb) {
-        if (chunk.toString().indexOf(this.filter) !== -1) 
-            this.push(chunk);
+        if (chunk.toString().indexOf(this.filter) !== -1) this.push(chunk);
         cb();
     }
 }
@@ -98,22 +143,17 @@ class FilterStream extends stream.Transform {
 class JoiningStream extends stream.Transform {
     constructor({ separator }) {
         super();
-        // this.buffer = '';
         this.firstChunk = true;
         this.separator = separator;
     }
 
     _transform(chunk, encoding, cb) {
-        // this.buffer && this.push(this.buffer);
-        // this.buffer = chunk.toString();
         !this.firstChunk && chunk.toString() && this.push(this.separator);
         this.firstChunk = false;
         this.push(chunk);
         cb();
     }
-
-    // _flush() {
-    //     this.push(this.buffer);
-    //     this.push(null);
-    // }
 }
+
+if (require.main === module)
+    module.exports();
