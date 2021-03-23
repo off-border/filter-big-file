@@ -1,12 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-
-const { start } = require("repl");
 const stream = require("stream");
 
 module.exports.CLI = async function () {
     const options = getOptions();
-    console.log("-----options", options);
+    console.log("options: \n", options);
     await module.exports.filterBigFile(options);
 };
 
@@ -28,7 +26,7 @@ function getOptions() {
 
 module.exports.filterBigFile = function ({
     inputFile = required("inputFile"),
-    outputFile = required("inputFile"),
+    outputFile = required("outputFile"),
     searchString = required("searchString"),
     blockSeparator = "\n",
 }) {
@@ -46,11 +44,10 @@ module.exports.filterBigFile = function ({
 
     const { promise, resolve, reject } = getPromise();
     const inputStream = fs.createReadStream(inputFile);
-    const filterStream = new FilterStream({ filter: searchString });
     const splitterStream = new SplitterStream({ separator: blockSeparator });
+    const filterStream = new FilterStream({ filter: searchString });
     const joiningStream = new JoiningStream({ separator: blockSeparator });
-    let outputStream = fs.createWriteStream(outputFile);
-
+    const outputStream = fs.createWriteStream(outputFile);
     const inputMonitorStream = new CounterStream();
     const outputMonitorStream = new CounterStream();
 

@@ -2,4 +2,4 @@
 
 const { CLI } = require("../src/filter-big-file.js");
 
-CLI();s
+CLI();
